@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36119.2 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HandHeldAPI", "HandHeldAPI\HandHeldAPI.csproj", "{BFC07D00-4035-4392-A3E6-8DAE3426081E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFC07D00-4035-4392-A3E6-8DAE3426081E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC07D00-4035-4392-A3E6-8DAE3426081E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC07D00-4035-4392-A3E6-8DAE3426081E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFC07D00-4035-4392-A3E6-8DAE3426081E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {98425C6E-48F8-48FD-9954-B231132864EE}
+	EndGlobalSection
+EndGlobal

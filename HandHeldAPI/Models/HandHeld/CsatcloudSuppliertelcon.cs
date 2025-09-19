@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace HandHeldAPI.Models.HandHeld;
+
+public partial class CsatcloudSuppliertelcon
+{
+    public string CompCode { get; set; } = null!;
+
+    public string CompUnit { get; set; } = null!;
+
+    public string Acflag { get; set; } = null!;
+
+    public string? Name1 { get; set; }
+
+    public string? Name2 { get; set; }
+
+    public string? Name3 { get; set; }
+
+    public string? Desi1 { get; set; }
+
+    public string? Desi2 { get; set; }
+
+    public string? Desi3 { get; set; }
+
+    public string? Ph1 { get; set; }
+
+    public string? Ph2 { get; set; }
+
+    public string? Ph3 { get; set; }
+
+    public DateTime? Dob { get; set; }
+
+    public DateTime? Dom { get; set; }
+
+    public string? Remark { get; set; }
+}

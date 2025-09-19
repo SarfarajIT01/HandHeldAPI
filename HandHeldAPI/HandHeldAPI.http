@@ -1,0 +1,6 @@
+@HandHeldAPI_HostAddress = http://localhost:5117
+
+GET {{HandHeldAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
