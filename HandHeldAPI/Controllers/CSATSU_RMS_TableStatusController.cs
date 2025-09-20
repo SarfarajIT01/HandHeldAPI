@@ -17,16 +17,13 @@ namespace HandHeldAPI.Controllers
             _context = context;
         }
 
-        // ================== GET ==================
         [HttpGet]
         public async Task<ActionResult<List<PfbRmscMst>>> Get()
          {
             try
             {
-                
                 var result = new List<PfbRmscMst>();
 
-                // सभी tables/rooms निकालना
                 var tables = await _context.PfbRmscMsts
                     .Where(x => x.RmscTyp == "tbl" || x.RmscTyp == "rom")
                     .OrderBy(x => x.RmscFloor)
@@ -50,7 +47,6 @@ namespace HandHeldAPI.Controllers
                         FloorDesc = ""
                     };
 
-                    // Floor_Desc निकालना
                     if (!string.IsNullOrEmpty(t.RmscFloor) && t.RmscFloor != "0")
                     {
                         var floor = await _context.PfbFloors
@@ -106,12 +102,6 @@ namespace HandHeldAPI.Controllers
 
                                     if (bill != null)
                                     {
-                                        // पुराने कोड में 2 branches थीं: कभी RBIL_ROUND, कभी RBIL_CVCHR2
-                                        //if (bill.RbilRound.HasValue)
-                                        //    Amt = bill.RbilRound.Value;
-                                        //else if (bill.RbilCvchr2.HasValue)
-                                        //    Amt = bill.RbilCvchr2.Value;
-
                                         if (bill.RbilRound.HasValue)
                                             Amt = (float)bill.RbilRound.Value;
                                         else if (!string.IsNullOrEmpty(bill.RbilCvchr2))
@@ -122,7 +112,6 @@ namespace HandHeldAPI.Controllers
                         }
                     }
 
-                    // Arrival Info (आज की तारीख)
                     var arrival = await _context.PfbTableArrivals
                         .FirstOrDefaultAsync(a => a.ArrDate == DateTime.Today && a.TableNo == t.RmscStd);
 

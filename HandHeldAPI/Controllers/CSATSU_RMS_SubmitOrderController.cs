@@ -359,7 +359,7 @@ namespace HandHeldAPI.Controllers
                 }
 
                 // Insert into RKOT_SUM
-                await InsertRkotSum(order, ktCode);
+                await InsertRkotSum(order, ktCode, outletId);
             }
             catch (Exception ex)
             {
@@ -408,7 +408,7 @@ namespace HandHeldAPI.Controllers
                 // Process RKOT_MAN entries
                 await ProcessRkotManEntries(order, item, orderNo);
             }
-                catch (Exception ex)
+                catch (Exception)
             {
 
             }
@@ -466,8 +466,6 @@ namespace HandHeldAPI.Controllers
             {
 
             }
-
-            
         }
 
         private async Task<string> GetSubItemName(string itemCode, string subItemCode)
@@ -557,7 +555,7 @@ namespace HandHeldAPI.Controllers
             SearialNo++;
         }
 
-        private async Task InsertRkotSum(OrderItem order, string ktCode)
+        private async Task InsertRkotSum(OrderItem order, string ktCode, string outletId)
         {
             try
             {
@@ -582,8 +580,9 @@ namespace HandHeldAPI.Controllers
                     var rkotSum = new PfbRkotSum
                     {
                         RsumKds = "S",
-                        //RsumPop = order.PosName,
-                        RsumPop = order.PosName?.Length > 6 ? order.PosName.Substring(0, 6) : order.PosName,
+                        RsumPop = order.PosCode,
+                        OutletId = outletId,
+                        //RsumPop = order.PosName?.Length > 6 ? order.PosName.Substring(0, 6) : order.PosName,
                         RsumKot = order.OrderNumber ?? string.Empty,
                         RsumDat = order.Date,
                         RsumTbl = order.TableNumber,
@@ -687,7 +686,7 @@ namespace HandHeldAPI.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner: {ex.InnerException.Message}");

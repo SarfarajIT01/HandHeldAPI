@@ -44,7 +44,7 @@ namespace HandHeldAPI.Controllers
 
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log the exception here (consider using ILogger)
                 return StatusCode(500, "An error occurred while processing your request");
