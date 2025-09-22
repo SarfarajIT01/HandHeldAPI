@@ -87,7 +87,7 @@ namespace HandHeldAPI.Controllers
                 var (orderNos, usedGroup) = await ProcessOrderItems(order, outletId);
                
                 // Insert order details
-                await InsertOrderDetails(order, orderNos, usedGroup, outletId);
+                await InsertOrderDetails(order, orderNos, usedGroup, outletId, userId);
                 
                 // Update table status
                 await UpdateTableStatus(order, outletId);
@@ -296,23 +296,29 @@ namespace HandHeldAPI.Controllers
             }
         }
 
-
-        private async Task InsertOrderDetails(OrderItem order, Dictionary<string, string> orderNos, Dictionary<string, string> usedGroup, string outletId)
+        private async Task InsertOrderDetails(OrderItem order, Dictionary<string, string> orderNos, Dictionary<string, string> usedGroup, string outletId, string userId)
         {
             try
             {
                 var ktCode = await GetKTCode(order.PosName);
-                
+
+                string? finalOrderNo = null;
+
                 foreach (var item in order.CartItem)
                 {
                     try
                     {
-                        var orderNo = orderNos.ContainsKey(item.ItemCode) ? orderNos[item.ItemCode] : order.OrderNumber;
+                        var orderNo = orderNos.ContainsKey(item.ItemCode)
+                            ? orderNos[item.ItemCode]
+                            : order.OrderNumber;
 
-                        // Insert RKOT_TRN
+                        // Store first order number (useful for RkotSum)
+                        if (finalOrderNo == null)
+                            finalOrderNo = orderNo;
+
+                        // Insert RKOT_TRN as before
                         var rkotTrn = new PfbRkotTrn
                         {
-                            //RkotPop = order.PosName,
                             RkotPop = order.PosCode,
                             OutletId = outletId,
                             RkotNo = orderNo,
@@ -320,7 +326,6 @@ namespace HandHeldAPI.Controllers
                             RkotMnu = item.ItemCode,
                             RkotRat = (decimal?)item.Price,
                             RkotQty = (decimal?)item.Quantity,
-                            //RkotSno = item.SearialNo,
                             RkotSno = SearialNo,
                             RkotDat = order.Date,
                             RkotTaxtyp = item.TaxType,
@@ -345,29 +350,100 @@ namespace HandHeldAPI.Controllers
 
                         _context.PfbRkotTrns.Add(rkotTrn);
                         await _context.SaveChangesAsync();
-                        // Process KDS and other related inserts
+
                         await ProcessRelatedInserts(order, item, orderNo);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error processing cart item {ItemCode} for order {OrderNo}. Item: {ItemName}",
                             item.ItemCode, order.OrderNumber, item.ItemName);
-
-                        // Continue with next item instead of failing the entire order
-                        //continue;
                     }
                 }
 
-                // Insert into RKOT_SUM
-                await InsertRkotSum(order, ktCode, outletId);
+                // Pass finalOrderNo to InsertRkotSum
+                if (finalOrderNo != null)
+                    await InsertRkotSum(order, ktCode, outletId, finalOrderNo, userId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error inserting order details for order {OrderNumber}. Table: {TableNumber}, POS: {POS}",
                     order.OrderNumber, order.TableNumber, order.PosName);
-                throw; // Re-throw to maintain transaction rollback
+                throw;
             }
         }
+
+
+        //private async Task InsertOrderDetails(OrderItem order, Dictionary<string, string> orderNos, Dictionary<string, string> usedGroup, string outletId)
+        //{
+        //    try
+        //    {
+        //        var ktCode = await GetKTCode(order.PosName);
+
+        //        foreach (var item in order.CartItem)
+        //        {
+        //            try
+        //            {
+        //                var orderNo = orderNos.ContainsKey(item.ItemCode) ? orderNos[item.ItemCode] : order.OrderNumber;
+
+        //                // Insert RKOT_TRN
+        //                var rkotTrn = new PfbRkotTrn
+        //                {
+        //                    //RkotPop = order.PosName,
+        //                    RkotPop = order.PosCode,
+        //                    OutletId = outletId,
+        //                    RkotNo = orderNo,
+        //                    RkotTyp = ktCode,
+        //                    RkotMnu = item.ItemCode,
+        //                    RkotRat = (decimal?)item.Price,
+        //                    RkotQty = (decimal?)item.Quantity,
+        //                    //RkotSno = item.SearialNo,
+        //                    RkotSno = SearialNo,
+        //                    RkotDat = order.Date,
+        //                    RkotTaxtyp = item.TaxType,
+        //                    RkotRem = item.RKOT_REM?.Replace("'", " ") ?? "",
+        //                    RkotStax = item.TaxStruCode,
+        //                    RkotTax = (decimal?)item.RKOT_TAX,
+        //                    RmnuRat = (decimal?)item.Rmnu_RAT,
+        //                    RkotDisc = item.DiscountPer2,
+        //                    RkotCombo = "N",
+        //                    RkotAddon = item.RKOT_ADDON,
+        //                    RkotIsaddon = item.IsAddon,
+        //                    RkotModifier = item.RKOT_Modifier,
+        //                    RkotSubItem = item.IsSubItem,
+        //                    RkotWqty = 0.00m,
+        //                    ComboCode = item.COMBO_CODE,
+        //                    ComboFlag = "",
+        //                    RkotType = item.RKOT_TYPE,
+        //                    HhDisc = 0.00m,
+        //                    FnlBaseVal = (decimal?)(item.Quantity * item.Price),
+        //                    DiscAmt = item.Discount2
+        //                };
+
+        //                _context.PfbRkotTrns.Add(rkotTrn);
+        //                await _context.SaveChangesAsync();
+        //                // Process KDS and other related inserts
+        //                await ProcessRelatedInserts(order, item, orderNo);
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                _logger.LogError(ex, "Error processing cart item {ItemCode} for order {OrderNo}. Item: {ItemName}",
+        //                    item.ItemCode, order.OrderNumber, item.ItemName);
+
+        //                // Continue with next item instead of failing the entire order
+        //                //continue;
+        //            }
+        //        }
+
+        //        // Insert into RKOT_SUM
+        //        await InsertRkotSum(order, ktCode, outletId);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error inserting order details for order {OrderNumber}. Table: {TableNumber}, POS: {POS}",
+        //            order.OrderNumber, order.TableNumber, order.PosName);
+        //        throw; // Re-throw to maintain transaction rollback
+        //    }
+        //}
 
         private async Task ProcessRelatedInserts(OrderItem order, CartItems item, string orderNo)
         {
@@ -549,42 +625,38 @@ namespace HandHeldAPI.Controllers
                     };
                     _context.PfbRkotMen.Add(rkotManRem);
                 }
-
                 await _context.SaveChangesAsync();
             }
             SearialNo++;
         }
 
-        private async Task InsertRkotSum(OrderItem order, string ktCode, string outletId)
+        private async Task InsertRkotSum(OrderItem order, string ktCode, string outletId, string finalOrderNo, string userId)
         {
             try
             {
                 var totalAmt = order.CartItem?.Sum(item => item.Quantity * item.Price) ?? 0;
 
-                // Check if summary already exists
                 var existingSum = await _context.PfbRkotSums
                     .FirstOrDefaultAsync(s => s.RsumPop == order.PosName &&
                                              s.RsumTbl == order.TableNumber &&
-                                             s.RsumKot == order.OrderNumber &&
+                                             s.RsumKot == finalOrderNo && 
                                              s.RsumSts == "K");
 
                 if (existingSum != null)
                 {
-                    // Update existing
                     existingSum.RsumAmt += (decimal)totalAmt;
                     _context.PfbRkotSums.Update(existingSum);
                 }
                 else
                 {
-                    // Insert new
                     var rkotSum = new PfbRkotSum
                     {
                         RsumKds = "S",
                         RsumPop = order.PosCode,
                         OutletId = outletId,
-                        //RsumPop = order.PosName?.Length > 6 ? order.PosName.Substring(0, 6) : order.PosName,
-                        RsumKot = order.OrderNumber ?? string.Empty,
-                        RsumDat = order.Date,
+                        RsumKot = finalOrderNo,
+                        //RsumDat = order.Date.Date,
+                        RsumDat = order.Date.HasValue ? order.Date.Value.Date : DateTime.MinValue,
                         RsumTbl = order.TableNumber,
                         RsumTyp = ktCode,
                         RsumGcd = order.guest_code,
@@ -594,10 +666,11 @@ namespace HandHeldAPI.Controllers
                         RsumSts = order.OrderStatus,
                         RsumCvr = short.TryParse(order.RSUM_CVR, out var parsedCvr) ? parsedCvr : (short?)null,
                         RsumSubtbl = order.RSUM_SUBTBL,
-                        RsumTim = order.RSUM_TIM,
-                        RsumCsh = order.RSUM_CSH,
+                        //RsumTim = order.RSUM_TIM,
+                        RsumTim = order.Date.HasValue ? order.Date.Value.ToString("HH:mm") : string.Empty,
+                        RsumCsh = userId,
                         RsumEdt = order.RSUM_EDT,
-                        RsumAmt = (decimal?)totalAmt, 
+                        RsumAmt = (decimal?)totalAmt,
                         RsumNo = short.TryParse(order.RSUM_NO, out var parsedRsumNo) ? parsedRsumNo : (short?)null,
                         RsumRemtyp = order.RSUM_REMTYP,
                         RsumStw = order.RSUM_STW
@@ -614,6 +687,67 @@ namespace HandHeldAPI.Controllers
                 throw;
             }
         }
+
+
+        //private async Task InsertRkotSum(OrderItem order, string ktCode, string outletId)
+        //{
+        //    try
+        //    {
+        //        var totalAmt = order.CartItem?.Sum(item => item.Quantity * item.Price) ?? 0;
+
+        //        // Check if summary already exists
+        //        var existingSum = await _context.PfbRkotSums
+        //            .FirstOrDefaultAsync(s => s.RsumPop == order.PosName &&
+        //                                     s.RsumTbl == order.TableNumber &&
+        //                                     s.RsumKot == order.OrderNumber &&
+        //                                     s.RsumSts == "K");
+
+        //        if (existingSum != null)
+        //        {
+        //            // Update existing
+        //            existingSum.RsumAmt += (decimal)totalAmt;
+        //            _context.PfbRkotSums.Update(existingSum);
+        //        }
+        //        else
+        //        {
+        //            // Insert new
+        //            var rkotSum = new PfbRkotSum
+        //            {
+        //                RsumKds = "S",
+        //                RsumPop = order.PosCode,
+        //                OutletId = outletId,
+        //                //RsumPop = order.PosName?.Length > 6 ? order.PosName.Substring(0, 6) : order.PosName,
+        //                RsumKot = order.OrderNumber ?? string.Empty,
+        //                RsumDat = order.Date,
+        //                RsumTbl = order.TableNumber,
+        //                RsumTyp = ktCode,
+        //                RsumGcd = order.guest_code,
+        //                RsumNar = order.guest_code,
+        //                RsumGcdName = order.guest_name,
+        //                RsumRem = order.RSUM_REM,
+        //                RsumSts = order.OrderStatus,
+        //                RsumCvr = short.TryParse(order.RSUM_CVR, out var parsedCvr) ? parsedCvr : (short?)null,
+        //                RsumSubtbl = order.RSUM_SUBTBL,
+        //                RsumTim = order.RSUM_TIM,
+        //                RsumCsh = order.RSUM_CSH,
+        //                RsumEdt = order.RSUM_EDT,
+        //                RsumAmt = (decimal?)totalAmt, 
+        //                RsumNo = short.TryParse(order.RSUM_NO, out var parsedRsumNo) ? parsedRsumNo : (short?)null,
+        //                RsumRemtyp = order.RSUM_REMTYP,
+        //                RsumStw = order.RSUM_STW
+        //            };
+
+        //            _context.PfbRkotSums.Add(rkotSum);
+        //        }
+
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"[Unexpected Error] InsertRkotSum failed: {ex.Message}");
+        //        throw;
+        //    }
+        //}
 
 
         private async Task UpdateTableStatus(OrderItem order, string outletId)

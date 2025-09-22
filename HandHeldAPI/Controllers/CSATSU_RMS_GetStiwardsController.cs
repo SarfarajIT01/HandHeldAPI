@@ -18,7 +18,6 @@ namespace HandHeldAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-
             var stiwardData = await(
                 from a in _context.CsatcloudEmployees
                 join b in _context.PfbPersonals on a.EmpId equals b.EmpCode

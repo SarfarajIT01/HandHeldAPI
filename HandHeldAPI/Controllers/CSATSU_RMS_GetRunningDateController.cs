@@ -2,6 +2,7 @@
 using HandHeldAPI.Models.HandHeld;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 //namespace CSATSU_RMS.Controllers
 namespace HandHeldAPI.Controllers
@@ -28,7 +29,7 @@ namespace HandHeldAPI.Controllers
                     // Get the running date 
                     var rmsRecord = _context.PfbMsts
                         .AsNoTracking()
-                        .Select(x => new PfbMst { RmsStdate = x.RmsStdate })
+                        .Select(x => new { x.RmsStwkot, x.RmsCovkot })
                         .FirstOrDefault();
 
                     if (rmsRecord == null)
@@ -40,7 +41,6 @@ namespace HandHeldAPI.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception here (consider using ILogger)
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
