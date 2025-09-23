@@ -5,6 +5,7 @@ using HandHeldAPI.Models.HandHeld;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using System.Net;
 
 namespace HandHeldAPI.Controllers
@@ -664,16 +665,16 @@ namespace HandHeldAPI.Controllers
                         RsumGcdName = order.guest_name,
                         RsumRem = order.RSUM_REM,
                         RsumSts = order.OrderStatus,
-                        RsumCvr = short.TryParse(order.RSUM_CVR, out var parsedCvr) ? parsedCvr : (short?)null,
+                        RsumCvr = order.Covor,
                         RsumSubtbl = order.RSUM_SUBTBL,
                         //RsumTim = order.RSUM_TIM,
                         RsumTim = order.Date.HasValue ? order.Date.Value.ToString("HH:mm") : string.Empty,
                         RsumCsh = userId,
                         RsumEdt = order.RSUM_EDT,
                         RsumAmt = (decimal?)totalAmt,
-                        RsumNo = short.TryParse(order.RSUM_NO, out var parsedRsumNo) ? parsedRsumNo : (short?)null,
+                        RsumNo = short.TryParse(order.ItemQty, out var parsedItemQty) ? parsedItemQty : (short?)null,
                         RsumRemtyp = order.RSUM_REMTYP,
-                        RsumStw = order.RSUM_STW
+                        RsumStw = order.StewardEmpId
                     };
 
                     _context.PfbRkotSums.Add(rkotSum);

@@ -17,9 +17,9 @@ namespace HandHeldAPI.Models.DTOs
         public string? guest_code { get; set; }
         public string? guest_name { get; set; }
         public string? RSUM_BIL { get; set; }
-        public string? RSUM_CVR { get; set; }
+        public short? Covor { get; set; }
         public string? RSUM_NAR { get; set; }
-        public string? RSUM_NO { get; set; }
+        public string? ItemQty { get; set; }
         public string? RSUM_KOT { get; set; }
         public string? RSUM_CshC { get; set; }
         public string? RSUM_CSH { get; set; }
@@ -29,7 +29,7 @@ namespace HandHeldAPI.Models.DTOs
         public string? RSUM_TIM { get; set; }
         public string? HH_DISC { get; set; }
         public string? RSUM_REMTYP { get; set; }
-        public string? RSUM_STW { get; set; }
+        public string? StewardEmpId { get; set; }
         public string? RSUM_REM { get; set; }
         public string? TotalDisc { get; set; }
         public List<CartItems>? CartItem { get; set; }
