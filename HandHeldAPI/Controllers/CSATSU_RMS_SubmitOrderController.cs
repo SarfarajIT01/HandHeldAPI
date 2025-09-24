@@ -656,7 +656,6 @@ namespace HandHeldAPI.Controllers
                         RsumPop = order.PosCode,
                         OutletId = outletId,
                         RsumKot = finalOrderNo,
-                        //RsumDat = order.Date.Date,
                         RsumDat = order.Date.HasValue ? order.Date.Value.Date : DateTime.MinValue,
                         RsumTbl = order.TableNumber,
                         RsumTyp = ktCode,
@@ -667,12 +666,11 @@ namespace HandHeldAPI.Controllers
                         RsumSts = order.OrderStatus,
                         RsumCvr = order.Covor,
                         RsumSubtbl = order.RSUM_SUBTBL,
-                        //RsumTim = order.RSUM_TIM,
                         RsumTim = order.Date.HasValue ? order.Date.Value.ToString("HH:mm") : string.Empty,
                         RsumCsh = userId,
                         RsumEdt = order.RSUM_EDT,
                         RsumAmt = (decimal?)totalAmt,
-                        RsumNo = short.TryParse(order.ItemQty, out var parsedItemQty) ? parsedItemQty : (short?)null,
+                        RsumNo = short.TryParse(order.TotalItems, out var parsedItemQty) ? parsedItemQty : (short?)null,
                         RsumRemtyp = order.RSUM_REMTYP,
                         RsumStw = order.StewardEmpId
                     };
