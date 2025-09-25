@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Net;
+using System.Numerics;
 
 namespace HandHeldAPI.Controllers
 {
@@ -301,6 +302,10 @@ namespace HandHeldAPI.Controllers
         {
             try
             {
+                var TaxPercentage = _context.CsatcloudTaxstructureTrns
+                    .Where(a => a.TaxStruCode == "GST")
+                    .Sum(a => (decimal?)Convert.ToDecimal(a.Factor));
+
                 var ktCode = await GetKTCode(order.PosName);
 
                 string? finalOrderNo = null;
@@ -332,8 +337,9 @@ namespace HandHeldAPI.Controllers
                             RkotTaxtyp = item.TaxType,
                             RkotRem = item.RKOT_REM?.Replace("'", " ") ?? "",
                             RkotStax = item.TaxStruCode,
-                            RkotTax = (decimal?)item.RKOT_TAX,
-                            RmnuRat = (decimal?)item.Rmnu_RAT,
+                            RkotTax = (decimal?)item.Price * (decimal?)item.Quantity * TaxPercentage / 100,
+                            RmnuRat = (decimal?)item.Price,
+                            //RmnuRat = (decimal?)item.Rmnu_RAT,
                             RkotDisc = item.DiscountPer2,
                             RkotCombo = "N",
                             RkotAddon = item.RKOT_ADDON,
