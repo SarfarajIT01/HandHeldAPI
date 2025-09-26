@@ -676,7 +676,8 @@ namespace HandHeldAPI.Controllers
                         RsumCsh = userId,
                         RsumEdt = order.RSUM_EDT,
                         RsumAmt = (decimal?)totalAmt,
-                        RsumNo = short.TryParse(order.TotalItems, out var parsedItemQty) ? parsedItemQty : (short?)null,
+                        RsumNo = (short)(_context.PfbRkotSums.Count(c => c.RsumTbl == order.TableNumber) +1),
+                        //RsumNo = short.TryParse(order.TotalItems, out var parsedItemQty) ? parsedItemQty : (short?)null,
                         RsumRemtyp = order.RSUM_REMTYP,
                         RsumStw = order.StewardEmpId
                     };
