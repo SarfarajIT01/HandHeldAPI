@@ -470,11 +470,11 @@ namespace HandHeldAPI.Controllers
                 {
                     PosName = popLocation,
                     VNo = orderNo,
-                    Qty = (short)item.Quantity,
+                    Qty = (short?)item.Quantity,
                     ItemName = item.ItemName,
                     ItemColor = 8454143,
                     Sts = "S",
-                    Rate = (float)item.Price,
+                    Rate = (float?)item.Price,
                     ItemTime = order.Date?.ToString("HH:mm:ss") ?? string.Empty,
                     Remark = item.RKOT_REM?.Replace("'", " ") ?? ""
                 };
