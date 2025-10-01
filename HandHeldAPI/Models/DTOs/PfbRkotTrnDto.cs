@@ -87,6 +87,7 @@
         public string? ItemCat { get; set; }
         public string? DiscountAllow { get; set; }
         public string? ItemGroup { get; set; }
+        public string? GRPSubName { get; set; }
         
     }
 }

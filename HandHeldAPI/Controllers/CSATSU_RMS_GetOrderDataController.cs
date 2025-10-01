@@ -1,5 +1,6 @@
 ﻿
 using HandHeldAPI.Data;
+using HandHeldAPI.Models;
 using HandHeldAPI.Models.DTOs;
 using HandHeldAPI.Models.HandHeld;
 using Microsoft.AspNetCore.Mvc;
@@ -73,9 +74,9 @@ namespace HandHeldAPI.Controllers
                         }
 
                         // 🔹 Copy values safely
-                        obj.RkotRat = trn.RkotRat ?? 0;
-                        obj.RkotQty = trn.RkotQty ?? 0;
-                        obj.RkotTax = trn.RkotTax ?? 0;
+                        obj.RkotRat = Math.Round(trn.RkotRat ?? 0, 2);
+                        obj.RkotQty = Convert.ToInt32(trn.RkotQty ?? 0);  // ✅ Convert to integer
+                        obj.RkotTax = Math.Round(trn.RkotTax ?? 0, 2);
                         obj.RkotSno = trn.RkotSno ?? 0;
                         obj.RkotDat = trn.RkotDat;
                         obj.RkotTaxtyp = trn.RkotTaxtyp;
@@ -96,7 +97,7 @@ namespace HandHeldAPI.Controllers
                         obj.RkotModifier = trn.RkotModifier;
                         obj.ComboCode = trn.ComboCode;
                         obj.ComboFlag = trn.ComboFlag;
-                        obj.FnlBaseVal = trn.FnlBaseVal ?? 0;
+                        obj.FnlBaseVal = Math.Round(trn.FnlBaseVal ?? 0, 2);
                         obj.DiscAmt = trn.DiscAmt ?? 0;
                         obj.RkotSurc = trn.RkotSurc ?? 0;
                         obj.RkotCvr = trn.RkotCvr;
@@ -106,73 +107,74 @@ namespace HandHeldAPI.Controllers
                         //obj.GRP_SUB = trn.GrpSub;
 
                         // 🔹 Tax Calculation
-                        var tax = await _context.CsatcloudTaxstructureTrns
-                            .Where(t => t.TaxStruCode == obj.RkotStax)
-                            .SumAsync(t => (decimal?)Convert.ToDecimal (t.Factor));
+                        //var tax = await _context.CsatcloudTaxstructureTrns
+                        //    .Where(t => t.TaxStruCode == obj.RkotStax)
+                        //    .SumAsync(t => (decimal?)Convert.ToDecimal (t.Factor));
 
-                        obj.RkotTax = tax;
+                        //obj.RkotTax = tax;
 
-                        //// ==========================
-                        //// 🔹 SUBITEM + MODIFIER
-                        //// ==========================
-                        //if ((!string.IsNullOrWhiteSpace(trn.RkotSubItem)) || (!string.IsNullOrWhiteSpace(trn.RkotModifier)))
-                        //{
-                        //    var subItem = await _context.RmsRkotMan
-                        //        .Where(m => m.Kotno == trn.RkotNo &&
-                        //                    m.Code == trn.RkotMnu &&
-                        //                    m.RkotSno == trn.RkotSno &&
-                        //                    m.DesORRem == "D")
-                        //        .FirstOrDefaultAsync();
+                        // ==========================
+                        // 🔹 SUBITEM + MODIFIER
+                        // ==========================
+                        if ((!string.IsNullOrWhiteSpace(trn.RkotSubItem)) || (!string.IsNullOrWhiteSpace(trn.RkotModifier)))
+                        {
+                            var subItem = await _context.PfbRkotMen
+                                .Where(m => m.Kotno == trn.RkotNo &&
+                                            m.Code == trn.RkotMnu &&
+                                            m.RkotSno == trn.RkotSno &&
+                                            m.DesOrrem == "D")
+                                .FirstOrDefaultAsync();
 
-                        //    if (subItem != null)
-                        //    {
-                        //        obj.ItemName = subItem.Desci;
-                        //    }
-                        //}
+                            if (subItem != null)
+                            {
+                                obj.ItemName = subItem.Desci;
+                            }
+                        }
 
-                        //// ==========================
-                        //// 🔹 GROUP SUBITEM
-                        //// ==========================
+                        // ==========================
+                        // 🔹 GROUP SUBITEM
+                        // ==========================
                         //if (trn.GrpSub == "y")
-                        //{
-                        //    var grpSubs = await (from a in _context.RmsSubItemTrn
-                        //                         join b in _context.RmsSubItem
-                        //                         on a.RkotSubitem equals b.Id
-                        //                         where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
-                        //                         select b.SubName).ToListAsync();
+                        if (trn.RkotSubItem == "y")
+                        {
+                            var grpSubs = await (from a in _context.PfbSubItemTrns
+                                                 join b in _context.PfbSubItems
+                                                 on a.RkotSubitem equals b.Id
+                                                 where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
+                                                 select b.SubName).ToListAsync();
 
-                        //    var commonAddons = await (from a in _context.RmsSubItemTrn
-                        //                              join b in _context.RmsCommonSubItem
-                        //                              on a.RkotSubitem equals b.Id
-                        //                              where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
-                        //                              select b.SubName).ToListAsync();
+                            var commonAddons = await (from a in _context.PfbSubItemTrns
+                                                      join b in _context.PfbCommonSubItems
+                                                      on a.RkotSubitem equals b.Id
+                                                      where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
+                                                      select b.SubName).ToListAsync();
 
-                        //    var allSubs = grpSubs.Concat(commonAddons).ToList();
-                        //    if (allSubs.Any())
-                        //    {
-                        //        obj.GRPSubName = string.Join(", #", allSubs);
-                        //    }
-                        //}
+                            var allSubs = grpSubs.Concat(commonAddons).ToList();
+                            if (allSubs.Any())
+                            {
+                                obj.GRPSubName = string.Join(", #", allSubs);
+                            }
+                        }
 
-                        //// ==========================
-                        //// 🔹 ADDON ITEMS
-                        //// ==========================
-                        //if (trn.RkotIsaddon == "y")
-                        //{
-                        //    var addons = await (from b in _context.RmsRkotTrn
-                        //                        join a in _context.RmsRmnuAddon
-                        //                            on b.RkotMnu equals a.RmnuAddonCod
-                        //                        where a.RmnuCod == trn.RkotAddon &&
-                        //                              b.RkotIsaddon == "y" &&
-                        //                              b.RkotNo == trn.RkotNo &&
-                        //                              b.RkotSno == trn.RkotSno
-                        //                        select a.RmnuAddonStd).ToListAsync();
+                        // ==========================
+                        // 🔹 ADDON ITEMS
+                        // ==========================
+                        if (trn.RkotIsaddon == "y")
+                        {
+                            var addons = await (from b in _context.PfbRkotTrns
+                                                join a in _context.PfbRmnuAddons
+                                                    on b.RkotMnu equals a.RmnuAddonCod
+                                                where a.RmnuCod == trn.RkotAddon &&
+                                                      b.RkotIsaddon == "y" &&
+                                                      b.RkotNo == trn.RkotNo &&
+                                                      b.RkotSno == trn.RkotSno
+                                                select a.RmnuAddonStd).ToListAsync();
 
-                        //    if (addons.Any())
-                        //    {
-                        //        obj.ItemName = "##" + addons.First();
-                        //    }
-                        //}
+                            if (addons.Any())
+                            {
+                                obj.ItemName = "##" + addons.First();
+                            }
+                        }
 
                         results.Add(obj);
                     }
