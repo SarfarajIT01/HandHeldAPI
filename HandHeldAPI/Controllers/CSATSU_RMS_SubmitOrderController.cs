@@ -516,7 +516,7 @@ namespace HandHeldAPI.Controllers
                             RkotDat = order.Date,
                             RkotMnu = item.ItemCode,
                             RkotSno = SearialNo,
-                            RkotSubitem = subItem.RKOT_SUBITEM,
+                            RkotSubitem = subItem.SubitemNo,
                             SubSn = 1,
                             Flag = "1"
                         };
@@ -525,7 +525,7 @@ namespace HandHeldAPI.Controllers
                         await _context.SaveChangesAsync();
 
                         // Get sub item name
-                        var subName = await GetSubItemName(item.ItemCode, subItem.RKOT_SUBITEM);
+                        var subName = await GetSubItemName(item.ItemCode, subItem.SubitemNo);
 
                         // Insert into KDS_TRN for sub item
                         var kdsSubTrn = new PfbKdsTrn

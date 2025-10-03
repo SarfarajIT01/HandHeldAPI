@@ -87,7 +87,7 @@ namespace HandHeldAPI.Models.DTOs
         public DateTime? RKOT_DAT { get; set; }
         public string? RKOT_MNU { get; set; }
         public Int16? RKOT_SNO { get; set; }
-        public string? RKOT_SUBITEM { get; set; }
+        public string? SubitemNo { get; set; }
         public Int16? SUB_SN { get; set; }
         public Int16? SUB_QTY { get; set; }
         public float? SubItemRates { get; set; }

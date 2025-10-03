@@ -29,6 +29,7 @@
     public class SubItem
     {
         public Int16? SubGrpId { get; set; }
+        public string? SubitemNo { get; set; }
         public string? SubGrpName { get; set; }
         public string? SubItemName { get; set; }
         public float? SubItemRates { get; set; }

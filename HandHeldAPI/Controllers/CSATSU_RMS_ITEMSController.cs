@@ -218,6 +218,7 @@ namespace HandHeldAPI.Controllers
                         a.ItemCode,
                         d.Pos,
                         SubGrpId = b.Id,
+                        SubitemNo =c.Id,
                         SubGrpName = b.GrpName,
                         SubItemName = c.SubName,
                         SubItemRates = d.Rates,
@@ -239,6 +240,7 @@ namespace HandHeldAPI.Controllers
                         var subGroupList = group.Select(sub => new SubItem
                         {
                             SubGrpId = sub.SubGrpId,
+                            SubitemNo = sub.SubitemNo,
                             SubGrpName = sub.SubGrpName,
                             SubItemName = sub.SubItemName,
                             SubItemRates = sub.SubItemRates,

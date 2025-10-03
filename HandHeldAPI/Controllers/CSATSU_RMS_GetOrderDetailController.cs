@@ -106,20 +106,20 @@ namespace HandHeldAPI.Controllers
                         trnDto.VegNonveg = menu.VegNonveg;
 
                         var cat = await _context.PfbRcuMsts
-                            .FirstOrDefaultAsync(c => c.RlocCod == menu.RmnuTouchCat);
+                            .FirstOrDefaultAsync(c => c.RlocCod == menu.TouchCat);
 
                         if (cat != null)
                             trnDto.ItemCat = cat.CuDesc;
 
                         var grp = await _context.PfbIgroupMsts
-                            .FirstOrDefaultAsync(g => g.GrpCod == menu.RmnuTyp);
+                            .FirstOrDefaultAsync(g => g.GrpCod == menu.ItemGroup);
 
                         if (grp != null)
                             trnDto.ItemGrp = grp.GrpName;
                     }
 
                     // 🔹 Addon handling
-                    if (trn.RkotIsaddon == "y")
+                    if (trn.RkotIsaddon == "Y")
                     {
                         var addon = await _context.PfbRmnuAddons
                             .FirstOrDefaultAsync(a => a.RmnuAddonCod == trn.RkotMnu);
@@ -127,13 +127,14 @@ namespace HandHeldAPI.Controllers
                         if (addon != null)
                         {
                             trnDto.ItemName = addon.RmnuAddonStd;
-                            trnDto.UmeshSign = "Addon";
+                            trnDto.UmeshSign = "Addonnnnn";
                         }
                     }
 
                     // 🔹 SubItem + Common SubItem
-                    if (trn.GrpSub == "y")
-                    {
+                    //if (trn.GrpSub == "y")
+                    if (trn.RkotSubItem == "Y")
+                        {
                         var subItems = await (from a in _context.PfbSubItemTrns
                                               join b in _context.PfbSubItems on a.RkotSubitem equals b.Id
                                               where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
