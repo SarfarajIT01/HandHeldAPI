@@ -210,15 +210,15 @@ namespace HandHeldAPI.Controllers
                                 _context.PfbRbillSums.Add(billSum);
 
                                 // Update RMS_RKOT_SUM
-                                var sum = _context.PfbRkotSums
-                                    .FirstOrDefault(s => s.RsumTbl == obj.Tbl.ToString()
-                                                      && s.RsumSts == "K"
-                                                      && s.RsumKot == trn.RKOT_NO);
-                                if (sum != null)
-                                {
-                                    sum.RsumSts = "B";
-                                    sum.RsumBil = orderNo;
-                                }
+                                //var sum = _context.PfbRkotSums
+                                //    .FirstOrDefault(s => s.RsumTbl == obj.Tbl.ToString()
+                                //                      && s.RsumSts == "K"
+                                //                      && s.RsumKot == trn.RKOT_NO);
+                                //if (sum != null)
+                                //{
+                                //    sum.RsumSts = "B";
+                                //    sum.RsumBil = orderNo;
+                                //}
 
                                 // Add Print Queue
                                 //_context.PdaPrnqs.Add(new RmsPdaPrnq
@@ -230,6 +230,27 @@ namespace HandHeldAPI.Controllers
 
                                 atLeastOneAffected = true;
                             }
+
+                            // Update RMS_RKOT_SUM
+                            var sum = _context.PfbRkotSums
+                                .FirstOrDefault(s => s.RsumTbl == obj.Tbl.ToString()
+                                                  && s.RsumSts == "K"
+                                                  && s.RsumKot == trn.RKOT_NO);
+                            if (sum != null)
+                            {
+                                sum.RsumSts = "B";
+                                sum.RsumBil = orderNo;
+                            }
+
+                            // Add Print Queue
+                            //_context.PdaPrnqs.Add(new RmsPdaPrnq
+                            //{
+                            //    PosId = pos,
+                            //    OrderBillNo = orderNo,
+                            //    PrnFlag = "B"
+                            //});
+
+                            atLeastOneAffected = true;
                         }
                     }
 
