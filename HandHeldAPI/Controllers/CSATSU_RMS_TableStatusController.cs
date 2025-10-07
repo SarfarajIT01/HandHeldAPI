@@ -98,7 +98,7 @@ namespace HandHeldAPI.Controllers
                                 if (!string.IsNullOrEmpty(b.RsumBil))
                                 {
                                     var bill = await _context.PfbRbillSums
-                                        .FirstOrDefaultAsync(x => x.RbilNo == b.RsumTbl && x.RbilSts == "B");
+                                        .FirstOrDefaultAsync(x => x.RbilNo == b.RsumBil && x.RbilSts == "B");
 
                                     if (bill != null)
                                     {

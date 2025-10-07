@@ -57,6 +57,9 @@
         public string? UmeshSign { get; set; }
         public string? GRPsubGroupID { get; set; }
 
+        public string? SerialNoStartWith { get; set; }
+
+
         public List<string>? GRPSubNameList { get; set; }
         public List<string>? GRPsubGroupIDList { get; set; }
 

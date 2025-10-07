@@ -115,7 +115,7 @@ namespace HandHeldAPI.Controllers
                                                  t.RkotSno == short.Parse(trn.RKOT_SNO));
                         if (rkotTrn != null)
                         {
-                            rkotTrn.RkotDisc = short.Parse(trn.DiscountPer);
+                            rkotTrn.RkotDisc = decimal.Parse(trn.DiscountPer);
                         }
 
                         // Check if RMS_RBILL_SUM already exists
@@ -180,7 +180,7 @@ namespace HandHeldAPI.Controllers
 
                             if (lastTax != null)
                             {
-                                serialAmt += short.Parse(lastTax.RTax_TaxAmt);
+                                serialAmt += double.Parse(lastTax.RTax_TaxAmt);
                                 serialAmt = Math.Round(serialAmt);
 
                                 var billSum = new PfbRbillSum
@@ -191,15 +191,15 @@ namespace HandHeldAPI.Controllers
                                     RbilNo = orderNo,
                                     RbilTbl = obj.Tbl.ToString(),
                                     RbilTim = timeHHmm,
-                                    RbilTamt = short.Parse(lastTax.RBIL_TAMT),
-                                    RbilNamt = short.Parse(lastTax.RBIL_NAMT),
-                                    RbilTotal = short.Parse(lastTax.RBIL_TOTAL),
-                                    RbilStx = short.Parse(lastTax.RBIL_STX),
-                                    RbilOtx = short.Parse(lastTax.RBIL_OTX),
-                                    RbilDc1 = short.Parse(lastTax.RBIL_DC1),
+                                    RbilTamt = decimal.Parse(lastTax.RBIL_TAMT),
+                                    RbilNamt = decimal.Parse(lastTax.RBIL_NAMT),
+                                    RbilTotal = decimal.Parse(lastTax.RBIL_TOTAL),
+                                    RbilStx = decimal.Parse(lastTax.RBIL_STX),
+                                    RbilOtx = decimal.Parse(lastTax.RBIL_OTX),
+                                    RbilDc1 = decimal.Parse(lastTax.RBIL_DC1),
                                     RbilSts = "B",
                                     RbilTaxfree = obj.RBIL_TAXFREE,
-                                    RbilRound = short.Parse(lastTax.RBIL_ROUND),
+                                    RbilRound = decimal.Parse(lastTax.RBIL_ROUND),
                                     RbilTaxableDisc = obj.RBIL_TaxableDisc,
                                     RbilCvchr2 = obj.RBIL_CVCHR2.ToString(),
                                     RbilRem = obj.odrem,
@@ -207,18 +207,28 @@ namespace HandHeldAPI.Controllers
                                     RbilGst = obj.G_Name
                                 };
 
-                                _context.PfbRbillSums.Add(billSum);
+                                var trackedEntity = _context.ChangeTracker.Entries<PfbRbillSum>()
+                                    .FirstOrDefault(e => e.Entity.RbilNo == orderNo)?.Entity;
+
+                                if (trackedEntity == null)
+                                {
+                                    _context.PfbRbillSums.Add(billSum);
+                                }
+                                else
+                                {
+                                    // Optionally update trackedEntity's properties here if needed
+                                }
 
                                 // Update RMS_RKOT_SUM
-                                //var sum = _context.PfbRkotSums
-                                //    .FirstOrDefault(s => s.RsumTbl == obj.Tbl.ToString()
-                                //                      && s.RsumSts == "K"
-                                //                      && s.RsumKot == trn.RKOT_NO);
-                                //if (sum != null)
-                                //{
-                                //    sum.RsumSts = "B";
-                                //    sum.RsumBil = orderNo;
-                                //}
+                                var sum = _context.PfbRkotSums
+                                    .FirstOrDefault(s => s.RsumTbl == obj.Tbl.ToString()
+                                                      && s.RsumSts == "K"
+                                                      && s.RsumKot == trn.RKOT_NO);
+                                if (sum != null)
+                                {
+                                    sum.RsumSts = "B";
+                                    sum.RsumBil = orderNo;
+                                }
 
                                 // Add Print Queue
                                 //_context.PdaPrnqs.Add(new RmsPdaPrnq
@@ -231,26 +241,7 @@ namespace HandHeldAPI.Controllers
                                 atLeastOneAffected = true;
                             }
 
-                            // Update RMS_RKOT_SUM
-                            var sum = _context.PfbRkotSums
-                                .FirstOrDefault(s => s.RsumTbl == obj.Tbl.ToString()
-                                                  && s.RsumSts == "K"
-                                                  && s.RsumKot == trn.RKOT_NO);
-                            if (sum != null)
-                            {
-                                sum.RsumSts = "B";
-                                sum.RsumBil = orderNo;
-                            }
-
-                            // Add Print Queue
-                            //_context.PdaPrnqs.Add(new RmsPdaPrnq
-                            //{
-                            //    PosId = pos,
-                            //    OrderBillNo = orderNo,
-                            //    PrnFlag = "B"
-                            //});
-
-                            atLeastOneAffected = true;
+                            
                         }
                     }
 

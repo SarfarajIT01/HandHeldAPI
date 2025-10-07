@@ -1,5 +1,4 @@
-﻿
-using HandHeldAPI.Data;
+﻿using HandHeldAPI.Data;
 using HandHeldAPI.Models;
 using HandHeldAPI.Models.DTOs;
 using HandHeldAPI.Models.HandHeld;
@@ -24,7 +23,7 @@ namespace HandHeldAPI.Controllers
         {
             try
             {
-                // 🔹 Get Table Instruction
+                // 🔹 1. Get Table Instruction
                 var tableInstruction = await _context.PfbRmscMsts
                     .Where(r => r.RmscTyp == "TBL" && r.RmscPop == pos && r.RmscCod == tableNo)
                     .Select(r => r.RmscGlcode)
@@ -33,16 +32,19 @@ namespace HandHeldAPI.Controllers
                 if (tableInstruction == null)
                     return NotFound("Table not found");
 
-                // 🔹 Get Running Orders (RMS_RKOT_SUM)
+                // 🔹 2. Get Running Orders (RMS_RKOT_SUM)
                 var runningOrders = await _context.PfbRkotSums
                     .Where(r => r.RsumTbl == tableNo && r.RsumSts == "K")
                     .ToListAsync();
+
+                if (!runningOrders.Any())
+                    return Ok(new List<PfbRkotTrnDto>());
 
                 var results = new List<PfbRkotTrnDto>();
 
                 foreach (var sum in runningOrders)
                 {
-                    // 🔹 Get all transactions for this order
+                    // 🔹 3. Get all transactions for this order
                     var transactions = await _context.PfbRkotTrns
                         .Where(t => t.RkotNo == sum.RsumKot)
                         .ToListAsync();
@@ -61,9 +63,30 @@ namespace HandHeldAPI.Controllers
                             RsumGcdName = sum.RsumGcdName
                         };
 
-                        // 🔹 Get Item Details
+                        // 🔹 4. Get Serial Number Prefix (SerialNoStartWith)
+                        try
+                        {
+                            var serialCode = await (
+                                from igpos in _context.PfbIgposMsts
+                                join menu in _context.PfbMenuitemMasters
+                                    on igpos.GrpCod equals menu.ItemGroup
+                                where menu.ItemCode == trn.RkotMnu &&
+                                      igpos.OdrbilType == "B" &&
+                                      igpos.Pos == pos
+                                select igpos.OdrbilSer
+                            ).FirstOrDefaultAsync();
+
+                            if (!string.IsNullOrEmpty(serialCode))
+                                obj.SerialNoStartWith = serialCode;
+                        }
+                        catch
+                        {
+                            // Leave empty if not found (like in addon cases)
+                        }
+
+                        // 🔹 5. Get Item Details
                         var item = await _context.PfbMenuitemMasters
-                            .FirstOrDefaultAsync(i => i.ItemCode == obj.RkotMnu);
+                            .FirstOrDefaultAsync(i => i.ItemCode == trn.RkotMnu);
 
                         if (item != null)
                         {
@@ -73,9 +96,9 @@ namespace HandHeldAPI.Controllers
                             obj.ItemGroup = item.ItemGroup;
                         }
 
-                        // 🔹 Copy values safely
+                        // 🔹 6. Safe value mapping
                         obj.RkotRat = Math.Round(trn.RkotRat ?? 0, 2);
-                        obj.RkotQty = Convert.ToInt32(trn.RkotQty ?? 0);  // ✅ Convert to integer
+                        obj.RkotQty = Convert.ToInt32(trn.RkotQty ?? 0);
                         obj.RkotTax = Math.Round(trn.RkotTax ?? 0, 2);
                         obj.RkotSno = trn.RkotSno ?? 0;
                         obj.RkotDat = trn.RkotDat;
@@ -104,19 +127,34 @@ namespace HandHeldAPI.Controllers
                         obj.RkotMc = trn.RkotMc;
                         obj.DiscTyp = trn.DiscTyp;
                         obj.HhDisc = trn.HhDisc ?? 0;
-                        //obj.GRP_SUB = trn.GrpSub;
+
+                        // 🔹 7. TAX CALCULATION
+                        //var taxList = await _context.CsatcloudTaxstructureTrns
+                        //    .Where(t => t.TaxStruCode == obj.RkotStax)
+                        //    .Select(t => t.Factor)
+                        //    .ToListAsync();
+
+                        //decimal taxSum = 0;
+
+                        //foreach (var factorStr in taxList)
+                        //{
+                        //    if (decimal.TryParse(factorStr, out var f))
+                        //        taxSum += f;
+                        //}
+
+                        //obj.RkotTax = taxSum == 0 ? 5 : taxSum;
 
                         // 🔹 Tax Calculation
-                        //var tax = await _context.CsatcloudTaxstructureTrns
-                        //    .Where(t => t.TaxStruCode == obj.RkotStax)
-                        //    .SumAsync(t => (decimal?)Convert.ToDecimal (t.Factor));
+                        var tax = await _context.CsatcloudTaxstructureTrns
+                            .Where(t => t.TaxStruCode == obj.RkotStax)
+                            .SumAsync(t => (decimal?)Convert.ToDecimal(t.Factor));
 
-                        //obj.RkotTax = tax;
+                        obj.RkotTax = tax == 0 ? 5 : tax;
 
-                        // ==========================
-                        // 🔹 SUBITEM + MODIFIER
-                        // ==========================
-                        if ((!string.IsNullOrWhiteSpace(trn.RkotSubItem)) || (!string.IsNullOrWhiteSpace(trn.RkotModifier)))
+
+
+                        // 🔹 8. SUBITEM + MODIFIER
+                        if (!string.IsNullOrWhiteSpace(trn.RkotSubItem) || !string.IsNullOrWhiteSpace(trn.RkotModifier))
                         {
                             var subItem = await _context.PfbRkotMen
                                 .Where(m => m.Kotno == trn.RkotNo &&
@@ -126,54 +164,47 @@ namespace HandHeldAPI.Controllers
                                 .FirstOrDefaultAsync();
 
                             if (subItem != null)
-                            {
                                 obj.ItemName = subItem.Desci;
-                            }
                         }
 
-                        // ==========================
-                        // 🔹 GROUP SUBITEM
-                        // ==========================
-                        //if (trn.GrpSub == "y")
+                        // 🔹 9. GROUP SUBITEM
                         if (trn.RkotSubItem == "y")
                         {
-                            var grpSubs = await (from a in _context.PfbSubItemTrns
-                                                 join b in _context.PfbSubItems
-                                                 on a.RkotSubitem equals b.Id
-                                                 where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
-                                                 select b.SubName).ToListAsync();
+                            var grpSubs = await (
+                                from a in _context.PfbSubItemTrns
+                                join b in _context.PfbSubItems on a.RkotSubitem equals b.Id
+                                where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
+                                select b.SubName
+                            ).ToListAsync();
 
-                            var commonAddons = await (from a in _context.PfbSubItemTrns
-                                                      join b in _context.PfbCommonSubItems
-                                                      on a.RkotSubitem equals b.Id
-                                                      where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
-                                                      select b.SubName).ToListAsync();
+                            var commonAddons = await (
+                                from a in _context.PfbSubItemTrns
+                                join b in _context.PfbCommonSubItems on a.RkotSubitem equals b.Id
+                                where a.RkotNo == trn.RkotNo && a.RkotSno == trn.RkotSno
+                                select b.SubName
+                            ).ToListAsync();
 
                             var allSubs = grpSubs.Concat(commonAddons).ToList();
                             if (allSubs.Any())
-                            {
                                 obj.GRPSubName = string.Join(", #", allSubs);
-                            }
                         }
 
-                        // ==========================
-                        // 🔹 ADDON ITEMS
-                        // ==========================
+                        // 🔹 10. ADDON ITEMS
                         if (trn.RkotIsaddon == "y")
                         {
-                            var addons = await (from b in _context.PfbRkotTrns
-                                                join a in _context.PfbRmnuAddons
-                                                    on b.RkotMnu equals a.RmnuAddonCod
-                                                where a.RmnuCod == trn.RkotAddon &&
-                                                      b.RkotIsaddon == "y" &&
-                                                      b.RkotNo == trn.RkotNo &&
-                                                      b.RkotSno == trn.RkotSno
-                                                select a.RmnuAddonStd).ToListAsync();
+                            var addons = await (
+                                from b in _context.PfbRkotTrns
+                                join a in _context.PfbRmnuAddons
+                                    on b.RkotMnu equals a.RmnuAddonCod
+                                where a.RmnuCod == trn.RkotAddon &&
+                                      b.RkotIsaddon == "y" &&
+                                      b.RkotNo == trn.RkotNo &&
+                                      b.RkotSno == trn.RkotSno
+                                select a.RmnuAddonStd
+                            ).ToListAsync();
 
                             if (addons.Any())
-                            {
                                 obj.ItemName = "##" + addons.First();
-                            }
                         }
 
                         results.Add(obj);
