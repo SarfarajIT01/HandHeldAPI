@@ -23,7 +23,7 @@ namespace HandHeldAPI.Controllers
         {
             try
             {
-                // 🔹 1. Get Table Instruction
+                //  1. Get Table Instruction
                 var tableInstruction = await _context.PfbRmscMsts
                     .Where(r => r.RmscTyp == "TBL" && r.RmscPop == pos && r.RmscCod == tableNo)
                     .Select(r => r.RmscGlcode)
@@ -32,7 +32,7 @@ namespace HandHeldAPI.Controllers
                 if (tableInstruction == null)
                     return NotFound("Table not found");
 
-                // 🔹 2. Get Running Orders (RMS_RKOT_SUM)
+                //  2. Get Running Orders (RMS_RKOT_SUM)
                 var runningOrders = await _context.PfbRkotSums
                     .Where(r => r.RsumTbl == tableNo && r.RsumSts == "K")
                     .ToListAsync();
@@ -44,7 +44,7 @@ namespace HandHeldAPI.Controllers
 
                 foreach (var sum in runningOrders)
                 {
-                    // 🔹 3. Get all transactions for this order
+                    //  3. Get all transactions for this order
                     var transactions = await _context.PfbRkotTrns
                         .Where(t => t.RkotNo == sum.RsumKot)
                         .ToListAsync();
@@ -63,7 +63,7 @@ namespace HandHeldAPI.Controllers
                             RsumGcdName = sum.RsumGcdName
                         };
 
-                        // 🔹 4. Get Serial Number Prefix (SerialNoStartWith)
+                        //  4. Get Serial Number Prefix (SerialNoStartWith)
                         try
                         {
                             var serialCode = await (
@@ -84,7 +84,7 @@ namespace HandHeldAPI.Controllers
                             // Leave empty if not found (like in addon cases)
                         }
 
-                        // 🔹 5. Get Item Details
+                        //  5. Get Item Details
                         var item = await _context.PfbMenuitemMasters
                             .FirstOrDefaultAsync(i => i.ItemCode == trn.RkotMnu);
 
@@ -96,7 +96,7 @@ namespace HandHeldAPI.Controllers
                             obj.ItemGroup = item.ItemGroup;
                         }
 
-                        // 🔹 6. Safe value mapping
+                        //  6. Safe value mapping
                         obj.RkotRat = Math.Round(trn.RkotRat ?? 0, 2);
                         obj.RkotQty = Convert.ToInt32(trn.RkotQty ?? 0);
                         obj.RkotTax = Math.Round(trn.RkotTax ?? 0, 2);
@@ -141,15 +141,18 @@ namespace HandHeldAPI.Controllers
                         //    if (decimal.TryParse(factorStr, out var f))
                         //        taxSum += f;
                         //}
-
+                            
                         //obj.RkotTax = taxSum == 0 ? 5 : taxSum;
 
                         // 🔹 Tax Calculation
-                        var tax = await _context.CsatcloudTaxstructureTrns
-                            .Where(t => t.TaxStruCode == obj.RkotStax)
-                            .SumAsync(t => (decimal?)Convert.ToDecimal(t.Factor));
+                        if (obj.RkotTax == 0)
+                        {
+                            var tax = await _context.CsatcloudTaxstructureTrns
+                                .Where(t => t.TaxStruCode == obj.RkotStax)
+                                .SumAsync(t => (decimal?)Convert.ToDecimal(t.Factor));
 
-                        obj.RkotTax = tax == 0 ? 5 : tax;
+                            obj.RkotTax = tax == 0 ? 5 : tax;
+                        }
 
 
 

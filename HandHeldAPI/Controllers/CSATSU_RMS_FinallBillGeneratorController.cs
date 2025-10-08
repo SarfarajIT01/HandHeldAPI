@@ -186,6 +186,7 @@ namespace HandHeldAPI.Controllers
                                 var billSum = new PfbRbillSum
                                 {
                                     RbilTcode = timeFull,
+                                    OutletId = obj.OutletId,
                                     RbilPop = pos,
                                     RbilDat = DateTime.Parse(sysDate),
                                     RbilNo = orderNo,
@@ -240,8 +241,6 @@ namespace HandHeldAPI.Controllers
 
                                 atLeastOneAffected = true;
                             }
-
-                            
                         }
                     }
 
