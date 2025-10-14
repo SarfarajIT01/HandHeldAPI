@@ -114,14 +114,14 @@ namespace HandHeldAPI.Controllers
 
         private async Task ProcessGuestInformation(OrderItem order)
         {
-            if (string.IsNullOrEmpty(order.guest_name) && !string.IsNullOrEmpty(order.guest_code))
+            if (string.IsNullOrEmpty(order.GuestName) && !string.IsNullOrEmpty(order.GuestCode))
             {
                 var guest = await _context.PfbGuests
-                    .FirstOrDefaultAsync(m => m.GuestCode == order.guest_code);
+                    .FirstOrDefaultAsync(m => m.GuestCode == order.GuestCode);
 
                 if (guest != null)
                 {
-                    order.guest_name = guest.GName;
+                    order.GuestName = guest.GName;
                 }
             }
         }
@@ -665,10 +665,10 @@ namespace HandHeldAPI.Controllers
                         RsumDat = order.Date.HasValue ? order.Date.Value.Date : DateTime.MinValue,
                         RsumTbl = order.TableNumber,
                         RsumTyp = ktCode,
-                        RsumGcd = order.guest_code,
-                        RsumNar = order.guest_code,
-                        RsumGcdName = order.guest_name,
-                        RsumRem = order.RSUM_REM,
+                        RsumGcd = order.GuestCode,
+                        RsumNar = order.GuestCode,
+                        RsumGcdName = order.GuestName,
+                        RsumRem = order.OrderRemark,
                         RsumSts = order.OrderStatus,
                         RsumCvr = order.Covor,
                         RsumSubtbl = order.RSUM_SUBTBL,
