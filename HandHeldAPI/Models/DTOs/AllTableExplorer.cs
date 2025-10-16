@@ -8,7 +8,7 @@
 
     public class VacantTableExplorer
     {
-        public string? Table { get; set; }
+        public string? TableNo { get; set; }
         public string? Status { get; set; }
         public string? RMSC_STD { get; set; }
         public string? RMSC_COD { get; set; }      
@@ -18,6 +18,7 @@
     public class OccupiedTableExplorer
     {
         public string? RkotPop { get; set; }
+        public string? OutletId { get; set; }
         public string? RsumTim { get; set; }
         public string? RkotNo { get; set; }
         public string? RsumTbl { get; set; }

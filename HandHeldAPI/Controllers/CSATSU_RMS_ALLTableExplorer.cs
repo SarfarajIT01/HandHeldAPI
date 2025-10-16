@@ -17,8 +17,8 @@ namespace HandHeldAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<AllTableExplorer>> GetAllTableExplorer()
+        [HttpGet("{OutletId}")]
+        public async Task<ActionResult<AllTableExplorer>> GetAllTableExplorer(string OutletId)
         {
             try
             {
@@ -27,17 +27,16 @@ namespace HandHeldAPI.Controllers
                 //  Occupied Tables
                 var occupiedData = await (
                     from a in _context.PfbRkotTrns
-                    join b in _context.PfbRkotSums
-                        on a.RkotNo equals b.RsumKot
-                    where b.RsumSts == "K"
+                    join b in _context.PfbRkotSums on a.RkotNo equals b.RsumKot
+                    where b.RsumSts == "K" && b.OutletId == OutletId
                     orderby b.RsumTbl
                     select new
                     {
-                        //a.grp_sub,
                         a.RkotSubItem,
                         a.RkotIsaddon,
                         a.RkotModifier,
                         a.RkotPop,
+                        a.OutletId,
                         b.RsumTim,
                         a.RkotNo,
                         a.RkotSno,
@@ -63,13 +62,15 @@ namespace HandHeldAPI.Controllers
                     var obj = new OccupiedTableExplorer
                     {
                         RkotPop = dr.RkotPop,
+                        OutletId = dr.OutletId,
                         RsumTim = dr.RsumTim,
                         RkotNo = dr.RkotNo,
                         RsumTbl = dr.RsumTbl,
                         RsumStw = dr.RsumStw,
                         RsumCvr = dr.RsumCvr.ToString(),
                         RsumAmt = dr.RsumAmt?.ToString(),
-                        RkotQty = dr.RkotQty?.ToString(),
+                        //RkotQty = dr.RkotQty?.ToString(),
+                        RkotQty = Convert.ToInt32(dr.RkotQty ?? 0).ToString(),
                         RkotRat = dr.RkotRat?.ToString(),
                         ItemName = dr.Name,
                         RkotRem = dr.RkotRem,
@@ -135,11 +136,12 @@ namespace HandHeldAPI.Controllers
 
                 // Vacant Tables
                 var vacantTables = await _context.PfbRmscMsts
-                    .Where(t => (t.RmscTyp == "tbl" || t.RmscTyp == "rom") && t.RmscTblsts == "")
+                    //.Where(t => (t.RmscTyp == "tbl" || t.RmscTyp == "rom") && t.RmscTblsts == "")
+                    .Where(t => (t.RmscTyp == "tbl" || t.RmscTyp == "rom") && t.OutletId == OutletId)
                     .OrderBy(t => t.RmscCod)
                     .Select(t => new VacantTableExplorer
                     {
-                        Table = t.RmscStd,
+                        TableNo = t.RmscStd,
                         Status = t.RmscStatus
                     })
                     .ToListAsync();
