@@ -335,23 +335,23 @@ namespace HandHeldAPI.Controllers
                             RkotSno = SearialNo,
                             RkotDat = order.Date,
                             RkotTaxtyp = item.TaxType,
-                            RkotRem = item.RKOT_REM?.Replace("'", " ") ?? "",
+                            RkotRem = item.RkotRem?.Replace("'", " ") ?? "",
                             RkotStax = item.TaxStruCode,
                             RkotTax = (decimal?)item.Price * (decimal?)item.Quantity * TaxPercentage / 100,
                             RmnuRat = (decimal?)item.Price,
                             //RmnuRat = (decimal?)item.Rmnu_RAT,
                             RkotDisc = item.DiscountPer2,
                             RkotCombo = "N",
-                            RkotAddon = item.RKOT_ADDON,
+                            RkotAddon = item.RkotAddon,
                             RkotIsaddon = item.IsAddon,
-                            RkotModifier = item.RKOT_Modifier,
+                            RkotModifier = item.RkotModifier,
                             RkotSubItem = item.IsSubItem,
                             RkotWqty = 0.00m,
                             ComboCode = item.COMBO_CODE,
                             ComboFlag = "",
                             RkotType = item.RKOT_TYPE,
                             HhDisc = 0.00m,
-                            FnlBaseVal = (decimal?)(item.Quantity * item.Price),
+                            FnlBaseVal = (decimal?)item.Quantity * (decimal?)item.Price,
                             DiscAmt = item.Discount2
                         };
 
@@ -476,7 +476,7 @@ namespace HandHeldAPI.Controllers
                     Sts = "S",
                     Rate = (float?)item.Price,
                     ItemTime = order.Date?.ToString("HH:mm:ss") ?? string.Empty,
-                    Remark = item.RKOT_REM?.Replace("'", " ") ?? ""
+                    Remark = item.RkotRem?.Replace("'", " ") ?? ""
                 };
 
                 _context.PfbKdsTrns.Add(kdsTrn);
@@ -536,8 +536,8 @@ namespace HandHeldAPI.Controllers
                             ItemName = subName,
                             ItemColor = 8454143,
                             Sts = "S",
-                            Rate = item.Rmnu_RAT,
-                            Remark = item.RKOT_REM?.Replace("'", " ") ?? ""
+                            Rate = (float?)item.RmnuRat,
+                            Remark = item.RkotRem?.Replace("'", " ") ?? ""
                         };
 
                         _context.PfbKdsTrns.Add(kdsSubTrn);
@@ -584,7 +584,7 @@ namespace HandHeldAPI.Controllers
         {
             //var date = order.Date;
 
-            if (item.RMNU_MODF == "1" || !string.IsNullOrEmpty(item.RKOT_REM))
+            if (item.RMNU_MODF == "1" || !string.IsNullOrEmpty(item.RkotRem))
             {
                 if (item.RMNU_MODF == "1")
                 {
@@ -601,7 +601,7 @@ namespace HandHeldAPI.Controllers
                     };
                     _context.PfbRkotMen.Add(rkotManDesc);
 
-                    if (!string.IsNullOrEmpty(item.RKOT_REM))
+                    if (!string.IsNullOrEmpty(item.RkotRem))
                     {
                         // Insert remark
                         var rkotManRem = new PfbRkotMan
@@ -610,14 +610,14 @@ namespace HandHeldAPI.Controllers
                             KotDate = order.Date,
                             Kotno = orderNo,
                             Code = item.ItemCode,
-                            Desci = item.RKOT_REM.Replace("'", " "),
+                            Desci = item.RkotRem.Replace("'", " "),
                             DesOrrem = "R",
                             RkotSno = SearialNo
                         };
                         _context.PfbRkotMen.Add(rkotManRem);
                     }
                 }
-                else if (!string.IsNullOrEmpty(item.RKOT_REM))
+                else if (!string.IsNullOrEmpty(item.RkotRem))
                 {
                     // Insert only remark
                     var rkotManRem = new PfbRkotMan
@@ -626,7 +626,7 @@ namespace HandHeldAPI.Controllers
                         KotDate = order.Date,
                         Kotno = orderNo,
                         Code = item.ItemCode,
-                        Desci = item.RKOT_REM.Replace("'", " "),
+                        Desci = item.RkotRem.Replace("'", " "),
                         DesOrrem = "R",
                         RkotSno = SearialNo
                     };
@@ -641,7 +641,7 @@ namespace HandHeldAPI.Controllers
         {
             try
             {
-                var totalAmt = order.CartItem?.Sum(item => item.Quantity * item.Price) ?? 0;
+                var totalAmt = order.CartItem?.Sum(item => item.Quantity * (decimal?)item.Price) ?? 0;
 
                 var existingSum = await _context.PfbRkotSums
                     .FirstOrDefaultAsync(s => s.RsumPop == order.PosName &&
