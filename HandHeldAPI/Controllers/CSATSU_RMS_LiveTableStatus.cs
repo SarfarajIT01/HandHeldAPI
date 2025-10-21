@@ -24,7 +24,7 @@ namespace HandHeldAPI.Controllers
             {
                 var orders = await (from a in _context.PfbRkotSums
                                     join b in _context.PfbOutletposMsts on a.RsumPop equals b.PosCode
-                                    where  a.RsumSts == "K" && a.RsumTbl == tableNo
+                                    where  a.RsumSts == "K" && a.OutletId == b.OutletId && a.RsumTbl == tableNo
 
                                     select new OrderItem
                                     {
@@ -40,6 +40,7 @@ namespace HandHeldAPI.Controllers
                                         RsumCsh = a.RsumCsh,
                                         StewardEmpId = a.RsumStw,
                                         OrderStatus = a.RsumSts,
+                                        Date = a.RsumDat,
                                         RsumTim = a.RsumTim,
                                         RsomKot = a.RsumKot
                                     }).ToListAsync();
@@ -68,8 +69,10 @@ namespace HandHeldAPI.Controllers
                             ItemName = menu ?? "",
                             RkotMnu = itm.RkotMnu,
                             RkotDat = itm.RkotDat,
-                            RkotRat = itm.RkotRat ?? 0,
-                            Quantity = itm.RkotQty ?? 0,
+                            //RkotRat = itm.RkotRat ?? 0,
+                            RkotRat = Convert.ToInt32(itm.RkotRat ?? 0),
+                            Quantity = Convert.ToInt32(itm.RkotQty ?? 0),
+                            //Quantity = itm.RkotQty ?? 0,
                             RmnuRat = itm.RmnuRat ?? 0,
                             RkotTax = itm.RkotTax ?? 0,
                             RkotSno = itm.RkotSno ?? 0,
