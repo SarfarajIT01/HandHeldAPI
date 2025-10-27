@@ -1,5 +1,4 @@
-﻿
-using HandHeldAPI.Data;
+﻿using HandHeldAPI.Data;
 using HandHeldAPI.Models.HandHeld;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +21,7 @@ namespace HandHeldAPI.Controllers
         public async Task<ActionResult<IEnumerable<PfbTableReserve>>> GetReservations()
         {
             try
-            {
+            { 
                 var result = await _context.PfbTableReserves
                     .Select(r => new PfbTableReserve
                     {
