@@ -5,6 +5,7 @@ namespace HandHeldAPI.Models.HandHeld;
 
 public partial class PfbMst
 {
+    public int Id { get; set; }
     public decimal? RmsModdata { get; set; }
 
     public string? RmsBtm1 { get; set; }

@@ -23240,9 +23240,13 @@ public partial class HandHeldDbContext : DbContext
 
         modelBuilder.Entity<PfbMst>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("pfb_mst");
+
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.ToTable("pfb_mst");
+
+            entity.Property(e => e.Id)
+                  .HasColumnName("id")
+                  .ValueGeneratedOnAdd();
 
             entity.Property(e => e.ArRefNo)
                 .HasMaxLength(15)
@@ -26591,9 +26595,13 @@ public partial class HandHeldDbContext : DbContext
 
         modelBuilder.Entity<PfbTableArrival>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("pfb_table_arrival");
+            
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.ToTable("pfb_table_arrival");
+
+            entity.Property(e => e.Id)
+                  .HasColumnName("id")
+                  .ValueGeneratedOnAdd();
 
             entity.Property(e => e.ArrDate)
                 .HasMaxLength(6)
