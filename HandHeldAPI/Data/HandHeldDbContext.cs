@@ -22663,6 +22663,38 @@ public partial class HandHeldDbContext : DbContext
             entity.Property(e => e.OutletId)
                 .HasMaxLength(6)
                 .HasColumnName("Outlet_id");
+
+            // New columns mapping
+            entity.Property(e => e.Steward)
+                .HasMaxLength(40)
+                .HasColumnName("Steward");
+
+            entity.Property(e => e.TableName)
+                .HasMaxLength(40)
+                .HasColumnName("Table_Name");
+
+            entity.Property(e => e.NoPax)
+                .HasColumnName("No_Pax");
+
+            entity.Property(e => e.FoodQuality)
+                .HasMaxLength(100)
+                .HasColumnName("Food_Quality");
+
+            entity.Property(e => e.ServiceQuality)
+                .HasMaxLength(100)
+                .HasColumnName("Service_Quality");
+
+            entity.Property(e => e.DiningQuality)
+                .HasMaxLength(100)
+                .HasColumnName("Dining_Quality");
+
+            entity.Property(e => e.ReferenceBy)
+                .HasMaxLength(50)
+                .HasColumnName("Reference_By");
+
+            entity.Property(e => e.MResp)
+                .HasMaxLength(20)
+                .HasColumnName("M_RESP");
         });
 
         modelBuilder.Entity<PfbGuestCommentItemwise>(entity =>

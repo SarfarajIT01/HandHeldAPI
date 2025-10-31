@@ -24,4 +24,17 @@ public partial class PfbGuestComment
     public string? GPosC { get; set; }
 
     public string? GComment { get; set; }
+
+    // Newly added columns
+    public string? Steward { get; set; }
+    public string? TableName { get; set; }
+    public short? NoPax { get; set; }
+    public string? FoodQuality { get; set; }
+    public string? ServiceQuality { get; set; }
+    public string? DiningQuality { get; set; }
+    public string? ReferenceBy { get; set; }
+    public string? MResp { get; set; }
 }
+
+
+
