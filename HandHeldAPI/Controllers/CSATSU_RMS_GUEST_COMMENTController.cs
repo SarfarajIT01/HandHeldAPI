@@ -82,6 +82,7 @@ namespace HandHeldAPI.Controllers
                 {
                     _context.PfbGuests.Remove(existingGuest);
                     await _context.SaveChangesAsync();
+                    _context.ChangeTracker.Clear(); // Clear tracked entities
                 }
 
                 // Insert into RMS_GUEST_COMMENT

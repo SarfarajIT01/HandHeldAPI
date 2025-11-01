@@ -5,6 +5,7 @@ namespace HandHeldAPI.Models.HandHeld;
 
 public partial class PfbGuestComment
 {
+    public int Id { get; set; }
     public string? OutletId { get; set; }
 
     public string? GCode { get; set; }

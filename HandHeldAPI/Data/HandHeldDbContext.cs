@@ -22629,9 +22629,13 @@ public partial class HandHeldDbContext : DbContext
 
         modelBuilder.Entity<PfbGuestComment>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("pfb_guest_comment");
+
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.ToTable("pfb_guest_comment");
+
+            entity.Property(e => e.Id)
+                  .HasColumnName("id")
+                  .ValueGeneratedOnAdd();
 
             entity.Property(e => e.GBill)
                 .HasMaxLength(10)
